@@ -60,18 +60,18 @@ def check():
                         #don't bother banning them if they're already banned
                         
                         try:
-                            if is_banned(subofcomment, cmtAuthor.name) or cmtAuthor.name in recentlyBannedUsers:
+                            if is_banned(subofcomment, cmtAuthor) or cmtAuthor in recentlyBannedUsers:
                                 pass
                             else:
                                 if cmtAuthor == "[deleted]":
                                     pass
                                 else:
                                     rmod.add_ban(subofcomment, **banargs)
-                                    recentlyBannedUsers.append(cmtAuthor.name)
-                                    print("Tempbanned " + cmtAuthor.name + " in " + "/r/" + comment.subreddit.display_name)
+                                    recentlyBannedUsers.append(cmtAuthor)
+                                    print("Tempbanned " + cmtAuthor + " in " + "/r/" + comment.subreddit.display_name)
                         except:
-                            recentlyBannedUsers.append(cmtAuthor.name)
-                            print("Couldn't ban " + cmtAuthor.name + " from /r/" + comment.subreddit.display_name + ". No access permission?")
+                            recentlyBannedUsers.append(cmtAuthor)
+                            print("Couldn't ban " + cmtAuthor + " from /r/" + comment.subreddit.display_name + ". No access permission?")
                         
                         
                         
