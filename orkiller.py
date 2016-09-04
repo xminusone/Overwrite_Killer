@@ -52,11 +52,8 @@ def check():
                         banargs = {"duration": 3, "note": modString, "ban_message": sentToUserString}
                         
                         #remove the comment regardless
-                        try:
-                            comment.remove(spam=False)
-                            print("Removed id " + comment.id + " by " + cmtAuthor + " from /r/" + comment.subreddit.display_name)
-                        except:
-                            print("Couldn't remove id " + comment.it + " from /r/" + comment.subreddit.display_name + ". No posts permission?")
+                        comment.remove(spam=False)
+                        print("Removed id " + comment.id + " by " + cmtAuthor + " from /r/" + comment.subreddit.display_name)
                         recentlyDonePosts.append(comment.id)
                         #don't bother banning them if they're already banned
                         
