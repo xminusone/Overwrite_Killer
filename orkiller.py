@@ -20,7 +20,7 @@ rmod = r.get_subreddit("mod")
 
 
 #string sent to user
-sentToUserString = "Greetings!  Your comment has been automatically removed because it is spam.  Spamming is a really shitty thing to do.  This script is one of the dumbest and spammiest scripts that I have ever seen.  Did you know that no one cares about your mundane comments?  You actually aren't even protecting any privacy because there are many sites out there that specifically cache comments just so that users cannot edit them.\n\nTo reiterate, this script is shit and you should not be using it.  Search for a different one, or edit it to say something less spammy.  But in the end, it won't matter because we can still see whatever it was that you edited.\n\nYou should also read this: https://reddit.zendesk.com/hc/en-us/articles/204536499-What-constitutes-spam-Am-I-a-spammer- \n\nDid I mention that is spammy and we don't like it?"
+sentToUserString = "You have been temporarily banned for using a comment overwrite script. This is considered spam. In future, please use a less spammy overwrite message. Thank you."
 
 def is_banned(sub, user):
     if [i for i in list(r.get_banned(sub)) if i.name == user]:
