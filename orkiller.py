@@ -44,13 +44,16 @@ def check():
                         #string for mod note
                         modString = "Greasemonkey overwrite script:", comment.id
                         
-                        cmtAuthor = comment.author
+                        if comment.author == None:
+                            cmtAuthor = "[deleted]"
+                        else:
+                            cmtAuthor = comment.author.name
                         #ban args
                         banargs = {"duration": 3, "note": modString, "ban_message": sentToUserString}
                         
                         #remove the comment regardless
                         comment.remove(spam=False)
-                        print("Removed id " + comment.id + " by " + cmtAuthor.name + " from /r/" + comment.subreddit.display_name)
+                        print("Removed id " + comment.id + " by " + cmtAuthor + " from /r/" + comment.subreddit.display_name)
                         recentlyDonePosts.append(comment.id)
                         #don't bother banning them if they're already banned
                         
@@ -58,12 +61,15 @@ def check():
                             if is_banned(rmod, cmtAuthor.name) or cmtAuthor.name in recentlyBannedUsers:
                                 pass
                             else:
-                                rmod.add_ban(cmtAuthor.name, **banargs)
-                                recentlyBannedUsers.append(cmtAuthor.name)
-                                print("Tempbanned " + cmtAuthor.name + " in " + "/r/" + comment.subreddit.display_name)
+                                if cmtAuthor == "[deleted]":
+                                    pass
+                                else:
+                                    rmod.add_ban(cmtAuthor, **banargs)
+                                    recentlyBannedUsers.append(cmtAuthor.name)
+                                    print("Tempbanned " + cmtAuthor.name + " in " + "/r/" + comment.subreddit.display_name)
                         except:
                             recentlyBannedUsers.append(cmtAuthor.name)
-                            print("Couldn't ban " + cmtAuthor.name + " from /r/" + comment.subreddit.display_name + ". No access permission? Is the author's account deleted?")
+                            print("Couldn't ban " + cmtAuthor.name + " from /r/" + comment.subreddit.display_name + ". No access permission?")
                         
                         
                         
