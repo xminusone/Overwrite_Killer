@@ -1,5 +1,5 @@
 import praw, time, datetime, traceback, obot
-#obot is the file used to login with OAuth
+#obot is used to login with OAuth, you will get an exception if you attempt to import it
 
 """
 Remove and tempban script users.
@@ -28,12 +28,17 @@ def is_banned(sub, user):
     return False
 
 #post checker method
-def check(stream):
+def check():
+        #NOTE: I modified praw (not my modification) in order to allow for edited sort, so this won't work for you natively!
+        stream = praw.helpers._stream_generator(rmod.get_edited, 100)
         #this phrase is always found in the comments
         scriptKeyword = "This comment has been overwritten by"
-        #NOTE: I modified praw (not my modification) in order to allow for edited sort, so this won't work for you natively!
+        #make sure we get the right thing
         for comment in stream:
-            text = comment.body
+            try:
+                text = comment.body
+            except AttributeError:
+                text = comment.selftext
             if scriptKeyword in text and comment.id not in recentlyDonePosts:
                 if comment.banned_by == None:
                         #string for mod note
@@ -48,16 +53,17 @@ def check(stream):
                         print("Removed id " + comment.id + " by " + cmtAuthor.name + " from /r/" + comment.subreddit.display_name)
                         recentlyDonePosts.append(comment.id)
                         #don't bother banning them if they're already banned
-                        if is_banned(rmod, cmtAuthor.name) or cmtAuthor.name in recentlyBannedUsers:
+                        
+                        try:
+                            if is_banned(rmod, cmtAuthor.name) or cmtAuthor.name in recentlyBannedUsers:
                                 pass
-                        else:
-                            try:
+                            else:
                                 rmod.add_ban(cmtAuthor.name, **banargs)
                                 recentlyBannedUsers.append(cmtAuthor.name)
                                 print("Tempbanned " + cmtAuthor.name + " in " + "/r/" + comment.subreddit.display_name)
-                            except:
-                                recentlyBannedUsers.append(cmtAuthor.name)
-                                print("Tried to ban a user, but couldn't. No access permission?")
+                        except:
+                            recentlyBannedUsers.append(cmtAuthor.name)
+                            print("Couldn't ban " + cmtAuthor.name + " from /r/" + comment.subreddit.display_name + ". No access permission? Is the author's account deleted?")
                         
                         
                         
@@ -66,12 +72,9 @@ def check(stream):
 def getTime():
     currentSysTime = time.localtime()
     return time.strftime('%m/%d/%y @ %H:%M:%S', currentSysTime)
-
-try:
-    while True:
-        stream = praw.helpers._stream_generator(rmod.get_edited, 100)
-        check(stream)
-except:
-    print("Exception. Sleeping for 2 minutes.")
-    tine.sleep(120)
+while True:
+    try:
+        check()
+    except:
+        time.sleep(1)
 
