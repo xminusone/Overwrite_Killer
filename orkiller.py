@@ -51,9 +51,13 @@ def check(stream):
                         if is_banned(rmod, cmtAuthor.name) or cmtAuthor.name in recentlyBannedUsers:
                                 pass
                         else:
+                            try:
                                 rmod.add_ban(cmtAuthor.name, **banargs)
                                 recentlyBannedUsers.append(cmtAuthor.name)
                                 print("Tempbanned " + cmtAuthor.name + " in " + "/r/" + comment.subreddit.display_name)
+                            except:
+                                recentlyBannedUsers.append(cmtAuthor.name)
+                                print("Tried to ban a user, but couldn't. No access permission?")
                         
                         
                         
