@@ -59,7 +59,7 @@ def check():
                         #don't bother banning them if they're already banned
                         
                         try:
-                            if is_banned(rmod, cmtAuthor.name) or cmtAuthor.name in recentlyBannedUsers:
+                            if is_banned(comment.subreddit, cmtAuthor.name) or cmtAuthor.name in recentlyBannedUsers:
                                 pass
                             else:
                                 if cmtAuthor == "[deleted]":
