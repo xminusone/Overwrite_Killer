@@ -31,7 +31,7 @@ def is_banned(sub, user):
 def check():
         #NOTE: I modified praw (not my modification) in order to allow for edited sort, so this won't work for you natively!
         #To add this yourself, see: http://redd.it/2y2rvj
-        stream = praw.helpers._stream_generator(rmod.get_edited, 100)
+        stream = rmod.get_edited(limit=100)
         #this phrase is always found in the comments
         scriptKeyword = "This comment has been overwritten by"
         #make sure we get the right thing
@@ -84,5 +84,5 @@ while True:
     try:
         check()
     except:
-        time.sleep(1)
+        time.sleep(10)
 
