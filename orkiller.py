@@ -43,6 +43,7 @@ def check():
             if scriptKeyword in text and comment.id not in recentlyDonePosts:
                 if comment.banned_by == None:
                         #string for mod note
+                        subofcomment = comment.subreddit
                         modString = "Greasemonkey overwrite script:", comment.id
                         
                         if comment.author == None:
@@ -59,13 +60,13 @@ def check():
                         #don't bother banning them if they're already banned
                         
                         try:
-                            if is_banned(comment.subreddit, cmtAuthor.name) or cmtAuthor.name in recentlyBannedUsers:
+                            if is_banned(subofcomment, cmtAuthor.name) or cmtAuthor.name in recentlyBannedUsers:
                                 pass
                             else:
                                 if cmtAuthor == "[deleted]":
                                     pass
                                 else:
-                                    rmod.add_ban(cmtAuthor, **banargs)
+                                    rmod.add_ban(subofcomment, **banargs)
                                     recentlyBannedUsers.append(cmtAuthor.name)
                                     print("Tempbanned " + cmtAuthor.name + " in " + "/r/" + comment.subreddit.display_name)
                         except:
