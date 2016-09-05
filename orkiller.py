@@ -13,7 +13,7 @@ recentlyDonePosts = []
 recentlyBannedUsers = []
 recentlyModdedSubs = []
 
-testMode = True
+testMode = False
 botActive = True
 
 #get posts from /r/mod
