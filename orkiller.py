@@ -1,4 +1,4 @@
-import praw, time, datetime, traceback, obot, re
+import praw, time, datetime, traceback, obot, re, ftplib
 #obot is used to login with OAuth, you will get an exception if you attempt to import it
 
 """
@@ -49,7 +49,29 @@ def isSpam(string):
                     return False 
         return False
 
+def addToLog(mode, id, text, sub, author, sub_id):
+    file = open('log.txt','a+')
+    if sub_id == id:
+        permalink = "http://redd.it/" + sub_id
+    else:
+        permalink = "http://reddit.com/r/" + sub + "/comments/" + sub_id + "/-/" + id
 
+    if mode == 1:
+        writeString = "Removed comment by /u/" + author + " in subreddit /r/" + sub + ". Link: " + permalink + ".\n" + "Text: \n            " + text + "\n\n"
+    elif mode == 2:
+        writeString = "Temporarily banned /u/" + author + " in subreddit /r/" + sub + ".\n\n"
+    file.write(writeString)
+    file.close()
+    try:
+        session = ftplib.FTP(ftphost, ftpusername, ftppassword)
+        file = open('log.txt','rb+')                  # file to send
+        session.storbinary('STOR public_html/orlog/log.txt', file)     # send the file
+        file.close()                                    # close file and FTP
+        session.quit()
+        print(" >> Successfully logged to server! <<")
+    except:
+        print(" >> Couldn't log! Wrong credentials? <<")
+    
 def is_banned(sub, user):
     if [i for i in list(r.get_banned(sub)) if i.name == user]:
         return True
@@ -57,15 +79,17 @@ def is_banned(sub, user):
 
 #post checker method
 def check():
-        stream = rmod.get_edited(limit=100)
+        stream = rmod.get_edited(limit=123)
         #this phrase is always found in the comments
         scriptKeyword = "This comment has been overwritten by"
         #make sure we get the right thing
         for comment in stream:
+            issubmission = False
             try:
                 text = comment.body
             except AttributeError:
                 text = comment.selftext
+                issubmission = True
             #set up some bools
             overwriteMessageInText = scriptKeyword in text
             itemNotDone = comment.id not in recentlyDonePosts
@@ -75,47 +99,64 @@ def check():
             if either and itemNotDone:
                 if comment.banned_by == None:
                         #string for mod note
-                        subofcomment = comment.subreddit
-                        modString = "Greasemonkey overwrite script:", comment.id
-                        
-                        #don't try to ban deleted users
-                        if comment.author == None:
-                            cmtAuthor = "[deleted]"
+                        if comment.approved_by.name != "Minecast" and comment.approved_by.name != None:
+                            approvedbymod = True
                         else:
-                            cmtAuthor = comment.author.name
-                        
-                        #ban args
-                        banargs = {"duration": 3, "note": modString, "ban_message": sentToUserString}
-                        
-                        #send item to spam filter if it's gibberish
-                        if(itemIsGibberish):
-                            if not testMode:
-                                comment.remove(spam=True)
-                            print("Removed id " + comment.id + " by " + cmtAuthor + " from /r/" + comment.subreddit.display_name + ". (gibberish comment)")
-                            print("        Text:", text)
-                        else:
-                            if not testMode:
-                                comment.remove(spam=False)
-                            print("Removed id " + comment.id + " by " + cmtAuthor + " from /r/" + comment.subreddit.display_name)
-                            print("        Text:", text)
-                        if not testMode:
-                            recentlyDonePosts.append(comment.id)
-                        
-                        #don't bother banning them if they're already banned
-                        try:
-                            if is_banned(subofcomment, cmtAuthor) or cmtAuthor in recentlyBannedUsers:
-                                pass
+                            approvedbymod = False
+                        if not approvedbymod:
+                            subofcomment = comment.subreddit
+                            modString = "Greasemonkey overwrite script:", comment.id
+                            
+                            #don't try to ban deleted users
+                            if comment.author == None:
+                                cmtAuthor = "[deleted]"
                             else:
-                                if cmtAuthor == "[deleted]":
+                                cmtAuthor = comment.author.name
+                            
+                            #ban args
+                            banargs = {"duration": 3, "note": modString, "ban_message": sentToUserString}
+                            
+                            #send item to spam filter if it's gibberish
+                            if(itemIsGibberish):
+                                
+                                print("Removed id " + comment.id + " by " + cmtAuthor + " from /r/" + comment.subreddit.display_name + ". (gibberish comment)")
+                                print("        Text:", text.encode("utf-8"))
+                                if issubmission:
+                                    addToLog(1, comment.id, text, comment.subreddit.display_name, cmtAuthor, comment.id)
+                                else:
+                                    addToLog(1, comment.id, text, comment.subreddit.display_name, cmtAuthor, comment.submission.id)
+                                if not testMode:
+                                    comment.remove(spam=True)
+                            else:
+                               
+                                print("Removed id " + comment.id + " by " + cmtAuthor + " from /r/" + comment.subreddit.display_name)
+                                print("        Text:", text.encode("utf-8"))
+                                if issubmission:
+                                    addToLog(1, comment.id, text, comment.subreddit.display_name, cmtAuthor, comment.id)
+                                else:
+                                    addToLog(1, comment.id, text, comment.subreddit.display_name, cmtAuthor, comment.submission.id)
+                                if not testMode:
+                                   comment.remove(spam=False)
+                            if not testMode:
+                                recentlyDonePosts.append(comment.id)
+                            
+                            #don't bother banning them if they're already banned
+                            try:
+                                if is_banned(subofcomment, cmtAuthor) or cmtAuthor in recentlyBannedUsers:
                                     pass
                                 else:
-                                    if not testMode:
-                                        rmod.add_ban(subofcomment, **banargs)
-                                        recentlyBannedUsers.append(cmtAuthor)
-                                    print("Tempbanned " + cmtAuthor + " in " + "/r/" + comment.subreddit.display_name)
-                        except:
-                            recentlyBannedUsers.append(cmtAuthor)
-                            print("Couldn't ban " + cmtAuthor + " from /r/" + comment.subreddit.display_name + ". No access permission?")
+                                    if cmtAuthor == "[deleted]":
+                                        pass
+                                    else:
+                                        if not testMode:
+                                            rmod.add_ban(subofcomment, **banargs)
+                                            recentlyBannedUsers.append(cmtAuthor)
+                                            
+                                        print("Tempbanned " + cmtAuthor + " in " + "/r/" + comment.subreddit.display_name)
+                                        addToLog(2, "", "", comment.subreddit.display_name, cmtAuthor)
+                            except:
+                                recentlyBannedUsers.append(cmtAuthor)
+                                print("Couldn't ban " + cmtAuthor + " from /r/" + comment.subreddit.display_name + ". No access permission?")
                         
                         
                         
@@ -126,6 +167,7 @@ def getTime():
     
 if testMode:
     print("/!\ TEST MODE! All actions are SIMULATED.")
+print("\nNow running.\n")
 while True:
     try:
         check()
