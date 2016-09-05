@@ -39,7 +39,7 @@ def isSpam(string):
             return False
         percent = (notanum / len(instring))*100
         capsPercent = (caps / len(instring))*100
-        if percent >=20 and spaces/len(string) < 0.05 and len:
+        if percent >=20 and spaces/len(string) < 0.05:
             if "[](" in string:
                 return False
             else:
